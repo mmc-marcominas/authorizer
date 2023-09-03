@@ -3,6 +3,9 @@ using authorizer.Infra;
 
 namespace authorizer.Extensions;
 
+/// <summary>
+/// StreamReader extensions
+/// </summary>
 public static class StreamReaderExtensions
 {
   /// <summary>
@@ -54,16 +57,17 @@ public static class StreamReaderExtensions
       throw new RequiredDataNotFoundException();
 
     var customerTransactions = new CustomerTransactions();
-    var i = 0;
     
     while (reader.Peek() > 0)
     {
-      var line = $" {++i} - {reader.ReadLine()?.Trim()}";
+      var line = $"{reader.ReadLine()?.Trim()}";
 
       if (line.StartsWith("{\"account\":"))
         customerTransactions.SetAccount(line);
-
-      Output.WriteLine(line);
+      else if (line.StartsWith("{\"transaction\":"))
+        customerTransactions.AddTransaction(line);
+      else
+        customerTransactions.RegisterViolation(ProcessViolation.InvalidData);
     }
 
     return customerTransactions;

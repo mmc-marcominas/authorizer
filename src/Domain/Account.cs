@@ -9,15 +9,10 @@ public class Account
   [JsonPropertyName("available-limit")]
   public int AvailableLimit { get; set; }
 
-  public override string ToString()
-  {
-    return ToString(string.Empty);
-  }
+  public override string ToString() => ToString(string.Empty);
 
-  public string ToString(string violation)
-  {
-    return GetDetails(violation, this);
-  }
+  public string ToString(string violation) => GetDetails(violation, this);
+  
   public static string GetDetails(string violation, Account? account = default)
   {
     var replacement = string.IsNullOrWhiteSpace(violation)

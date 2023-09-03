@@ -4,6 +4,9 @@ using authorizer.Domain;
 
 namespace authorizer.Extensions;
 
+/// <summary>
+/// Customer transactions extensions
+/// </summary>
 public static class CustomerTransactionsExtensions
 {
   /// <summary>
@@ -33,6 +36,28 @@ public static class CustomerTransactionsExtensions
   }
 
   /// <summary>
+  /// Validate <paramref name="data"/> sent and convert it in a <see cref="Account"/> 
+  /// applying it on <paramref name="customerTransactions"/> instance
+  /// </summary>
+  /// <param name="customerTransactions">A valid <see cref="CustomerTransactions"/> instance</param>
+  /// <param name="data">A string value representing a <see cref="Transaction"/></param>
+  public static void AddTransaction(this CustomerTransactions customerTransactions, string data)
+  {
+    var transactionInfo = JsonSerializer.Deserialize<TransactionInfo>(data);
+    if (transactionInfo != default && transactionInfo.Transaction != default)
+    {
+      var transaction = new Transaction
+      {
+        Amount = transactionInfo.Transaction.Amount,
+        Merchant = transactionInfo.Transaction.Merchant,
+        Time = transactionInfo.Transaction.Time
+      };
+      if (customerTransactions.ValidateTransactionRegistration(transaction))
+        customerTransactions.Transactions = customerTransactions.Transactions.Add(transaction);
+    }
+  }
+
+  /// <summary>
   /// Register any rule violation acording validantion of received data
   /// </summary>
   /// <param name="customerTransactions">A valid <see cref="CustomerTransactions"/> instance</param>
@@ -57,5 +82,69 @@ public static class CustomerTransactionsExtensions
       var result = customerTransactions.Account.ToString();
       customerTransactions.OperationsResult = customerTransactions.OperationsResult.Add(result);
     }
+  }
+
+  /// <summary>
+  /// Validate <see cref="Transaction"/> registration rules
+  /// </summary>
+  /// <param name="customerTransactions">A valid <see cref="CustomerTransactions"/> instance</param>
+  /// <param name="transaction">A valid <see cref="Transaction"/> instance</param>
+  /// <returns></returns>
+  private static bool ValidateTransactionRegistration(this CustomerTransactions customerTransactions, Transaction transaction)
+  {
+    var processViolation = customerTransactions.GetProcessViolation(customerTransactions.Account, transaction);
+
+    if (processViolation == ProcessViolation.None)
+    {
+      if (customerTransactions.Account != default)
+      {
+        customerTransactions.Account.AvailableLimit -= transaction.Amount;
+      }
+      customerTransactions.RegisterValidAccountOperation();
+      transaction.Paid = true;
+    }
+    else
+    {
+      customerTransactions.RegisterViolation(processViolation);
+    }
+
+    return customerTransactions.Account != default;
+  }
+
+  internal static ProcessViolation GetProcessViolation(this CustomerTransactions customerTransactions, Account? account, Transaction transaction)
+  {
+    if (account == default)
+    {
+      return ProcessViolation.AccountNotInitialized;
+    }
+
+    if (!account.ActiveCard)
+    {
+      return ProcessViolation.CardNotActive;
+    }
+
+    if (account.AvailableLimit < transaction.Amount)
+    {
+      return ProcessViolation.InsufficientLimit;
+    }
+
+    var transactionTimeLimit = transaction.Time.AddMinutes(customerTransactions.Settings.SmallIntervalInMinutes);
+
+    if (customerTransactions.Transactions.Count(
+             x => x.Paid &&
+                  x.Time >= transactionTimeLimit) >= customerTransactions.Settings.MaxAllowedOnSmallInterval)
+    {
+      return ProcessViolation.HighFrequencySmallInterval;
+    }
+
+    if (customerTransactions.Transactions.Any(
+             x => x.Paid && x.Amount == transaction.Amount &&
+                  x.Merchant == transaction.Merchant &&
+                  x.Time >= transactionTimeLimit))
+    {
+      return ProcessViolation.DoubleTransaction;
+    }
+
+    return ProcessViolation.None;
   }
 }

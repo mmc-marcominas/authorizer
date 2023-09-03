@@ -60,6 +60,9 @@ public static class StreamReaderExtensions
     {
       var line = $" {++i} - {reader.ReadLine()?.Trim()}";
 
+      if (line.StartsWith("{\"account\":"))
+        customerTransactions.SetAccount(line);
+
       Output.WriteLine(line);
     }
 

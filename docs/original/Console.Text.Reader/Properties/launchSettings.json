@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Console.Text.Reader": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

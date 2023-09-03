@@ -82,7 +82,68 @@ marcominas@DESKTOP-NLL30IN ~/projects/authorizer
 
 ### Como executar
 
-`TODO`
+Execute o seguinte comando na pasta raiz que contém o arquivo [Makefile](Makefile):
+
+``` bash
+$ make run json=operations.json
+```
+O resultado esperado é algo como:
+
+``` bash
+json: operations.json
+{
+  "account": {
+    "active-card": true,
+    "available-limit": 100
+  }
+}
+{
+  "transaction": {
+    "merchant": "Burger King",
+    "amount": 20,
+    "time": "2019-02-13T10:00:00.000Z"
+  }
+}
+{
+  "transaction": {
+    "merchant": "Habbib's",
+    "amount": 30,
+    "time": "2019-02-13T11:00:00.000Z"
+  }
+}
+{
+  "transaction": {
+    "merchant": "McDonald's",
+    "amount": 40,
+    "time": "2019-02-13T12:00:00.000Z"
+  }
+}
+
+result
+
+{"account": {"active-card": true, "available-limit": 100}, "violations": []}
+{"account": {"active-card": true, "available-limit": 80}, "violations": []}
+{"account": {"active-card": true, "available-limit": 50}, "violations": []}
+{"account": {"active-card": true, "available-limit": 10}, "violations": []}
+
+Press enter to continue
+```
+
+Possíveis execuções disponíveis na pasta [data](data) até o momento:
+
+| json | regra |
+|---|---|
+| operations.json | execução com sucesso |
+| operations-account-already-initialized.json | erro conta já inicializada |
+| operations-account-not-initialized.json | erro conta não inicializada |
+| operations-card-not-active.json | erro cartão inativo |
+| operations-doubled-transaction.json | erro transação duplicada |
+| operations-empty.json | erro sem operação |
+| operations-high-frequency-small-interval.json | erro alta frequência em pouco tempo |
+| operations-insufficient-limit.json | fundo insuficiente |
+| operations-multiple-rules-breaks.json | quebra de diversas regras |
+|  |  |
+
 
 ## Notas adicionais
 

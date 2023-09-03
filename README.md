@@ -5,7 +5,7 @@ de seleção que participei e que recentemente revisitei para refatorar usando
 extension methods para agrupar funcionalidades de acordo com determinados
 tipos de objetos usados.
 
-Detalhes do desafio podem ser lidos em [challenge.md](challenge.md)
+Detalhes do desafio podem ser lidos em [challenge.md](docs/challenge.md)
 
 Detalhes da [solução original](docs/original/):
 
@@ -81,6 +81,14 @@ marcominas@DESKTOP-NLL30IN ~/projects/authorizer
 ```
 
 ### Como executar
+
+O Makefile and usa [jq](https://jqlang.github.io/jq/) para formatar os arquivos json dos testes. Tente instalar `jq` se o seguinte erro ocorer na execução dos testes:
+
+``` bash
+$ make test
+/bin/sh: 4: jq: not found
+make: *** [Makefile:5: test] Error 127
+```
 
 Execute o seguinte comando na pasta raiz que contém o arquivo [Makefile](Makefile):
 
